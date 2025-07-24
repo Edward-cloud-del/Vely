@@ -1,0 +1,191 @@
+GOOGLE VISION API IMPLEMENTATION PLAN
+=========================================
+
+SYFTE: Integrera Google Vision API för att identifiera personer, loggor och symboler i bilder.
+Denna plan beskriver den SIMPLASTE vägen att implementera detta i befintlig backend.
+
+=== STEG 1: SETUP OCH KONFIGURATION ===
+
+1.1 Dependencies (✅ KLART)
+   - @google-cloud/vision redan installerat
+   - Ingen ytterligare dependencies behövs
+
+1.2 Google Cloud Setup
+   - Skapa Google Cloud projekt (om inte redan finns)
+   - Aktivera Vision API i Google Cloud Console
+   - Skapa Service Account Key (JSON-fil)
+   - Ladda ner credentials.json till backend/config/
+
+1.3 Environment Variables
+   Lägg till i .env:
+   ```
+   GOOGLE_APPLICATION_CREDENTIALS=./config/credentials.json
+   # ELLER använd API key istället:
+   GOOGLE_VISION_API_KEY=your-api-key-here
+   ```
+
+=== STEG 2: VISION SERVICE IMPLEMENTATION ===
+
+2.1 Skapa backend/src/services/vision.js
+   Funktioner som behövs:
+   - detectObjects() - Identifiera objekt och symboler
+   - detectLogos() - Specifikt för loggor  
+   - detectFaces() - Räkna och identifiera ansikten
+   - analyzeImageContent() - Sammanfattande funktion
+
+2.2 API Capabilities att använda:
+   - LABEL_DETECTION (objekt, symboler)
+   - LOGO_DETECTION (varumärken, loggor)
+   - FACE_DETECTION (personer)
+   - TEXT_DETECTION (bättre än Tesseract)
+   - SAFE_SEARCH_DETECTION (bonus: filtrera olämpligt innehåll)
+
+=== STEG 3: INTEGRATION MED BEFINTLIG KOD ===
+
+3.1 Uppdatera backend/src/routes/analyze.js
+   - Behåll befintlig OCR och ChatGPT flow
+   - Lägg till Google Vision som steg 1.5 (mellan OCR och ChatGPT)
+   - Kombinera resultat från alla tre tjänster
+
+3.2 Response Structure
+   ```javascript
+   {
+     success: true,
+     // Befintlig OCR data
+     text: "...",
+     textConfidence: 0.95,
+     
+     // NY: Google Vision data  
+     vision: {
+       objects: ["person", "car", "building"],
+       logos: ["Nike", "Apple"],
+       faces: 2,
+       confidence: 0.88
+     },
+     
+     // Befintlig ChatGPT data
+     answer: "...",
+     tokensUsed: 1500
+   }
+   ```
+
+=== STEG 4: SMART FALLBACK STRATEGI ===
+
+4.1 Prioritering av tjänster:
+   1. Google Vision (primär för objekt/loggor/personer)
+   2. Tesseract OCR (backup för text om Vision TEXT_DETECTION misslyckas)
+   3. ChatGPT (tolkning och sammanhang)
+
+4.2 Error Handling:
+   - Om Google Vision misslyckas → fortsätt med OCR + ChatGPT
+   - Om API key saknas → visa varning men fortsätt
+   - Logga alla fel för debugging
+
+=== STEG 5: IMPLEMENTATION DETALJER ===
+
+5.1 File Structure:
+   ```
+   backend/
+   ├── config/
+   │   └── credentials.json (Google service account)
+   ├── src/
+   │   ├── services/
+   │   │   ├── vision.js (NY)
+   │   │   ├── ocr.js (befintlig)
+   │   │   └── chatgpt.js (befintlig)
+   │   └── routes/
+   │       └── analyze.js (uppdatera)
+   ```
+
+5.2 Vision Service API Calls:
+   - En funktion per detection type
+   - Returnera strukturerad data
+   - Hantera rate limits
+   - Cache results för samma bilder
+
+=== STEG 6: TESTNING ===
+
+6.1 Test Cases:
+   - Bild med personer (ska hitta ansikten)
+   - Bild med loggor (Nike, Apple, etc.)
+   - Bild med symboler (trafikskyltar, ikoner)
+   - Bild med bara text (jämför Vision vs Tesseract)
+   - Bild utan innehåll (tom/vit bild)
+
+6.2 Performance Testing:
+   - Mät response times
+   - Testa med olika bildstorlekar
+   - Verifiera confidence scores
+
+=== STEG 7: DEPLOYMENT ===
+
+7.1 Railway Deployment:
+   - Lägg till GOOGLE_APPLICATION_CREDENTIALS som Railway secret
+   - ELLER ladda upp credentials.json som Railway volume
+   - ELLER använd API key istället för service account
+
+7.2 Environment Specifik Setup:
+   - Development: Local credentials.json
+   - Production: Railway environment variables
+
+=== STEG 8: ANVÄNDNINGSEXEMPEL ===
+
+8.1 Typiska Use Cases:
+   ```
+   Input: Bild av person med Nike-tröja
+   Output: {
+     vision: {
+       objects: ["person", "clothing"],
+       logos: ["Nike"], 
+       faces: 1,
+       confidence: 0.92
+     }
+   }
+   ```
+
+8.2 Smart Text Detection:
+   - Använd Google Vision TEXT_DETECTION som primär
+   - Fallback till Tesseract om Google misslyckas
+   - Kombinera resultat för bästa accuracy
+
+=== IMPLEMENTATION TIDSPLAN ===
+
+Dag 1: 
+- Setup Google Cloud (30 min)
+- Skapa vision.js service (2 timmar)
+
+Dag 2:
+- Integrera med analyze.js (1 timme)
+- Testning och debugging (2 timmar)
+
+Dag 3:
+- Deployment till Railway (1 timme)
+- End-to-end testing (1 timme)
+
+TOTAL: ~7 timmar arbete
+
+=== KOSTNADER ===
+
+Google Vision API pricing (ungefär):
+- First 1000 requests/month: GRATIS
+- $1.50 per 1000 requests efter det
+- Mycket billigare än ChatGPT för basic image analysis
+
+=== TEKNISKA FÖRDELAR ===
+
+1. SNABBARE än ChatGPT för object detection
+2. BILLIGARE för basic image analysis  
+3. INGEN token limits som ChatGPT
+4. HÖGRE accuracy för logo/face detection
+5. KOMPLEMENTERAR befintlig ChatGPT integration perfekt
+
+=== NEXT STEPS ===
+
+1. Konfigurera Google Cloud (manuellt)
+2. Implementera vision.js service
+3. Uppdatera analyze.js route
+4. Testa lokalt
+5. Deploy till Railway
+
+Denna plan ger dig den SIMPLASTE möjliga implementationen som bygger på din befintliga
+arkitektur utan att störa något som redan fungerar. 

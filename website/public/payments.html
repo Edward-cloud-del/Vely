@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade to Pro - FrameSense</title>
+    <meta name="description" content="Upgrade to FrameSense Pro för avancerade AI-funktioner och obegränsad användning">
+    <link rel="icon" href="/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="border-b border-gray-700 bg-gray-900/90 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold">FrameSense</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="user-info" class="hidden">
+                        <span class="text-green-400">● </span>
+                        <span id="user-name" class="text-sm"></span>
+                    </div>
+                    <button id="logout-btn" class="hidden text-gray-400 hover:text-white transition-colors" onclick="logout()">
+                        Logga ut
+                    </button>
+                    <a href="/" class="text-gray-400 hover:text-white transition-colors">← Tillbaka</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="max-w-6xl mx-auto px-4 py-16">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Upgrade to Pro
+            </h1>
+            <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+                Lås upp kraftfulla AI-modeller och avancerade funktioner för den ultimata skärmanalys-upplevelsen
+            </p>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="grid md:grid-cols-4 gap-6 mb-16">
+            <!-- Free Plan -->
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <div class="text-center">
+                    <h3 class="text-xl font-bold mb-3">Free</h3>
+                    <div class="text-3xl font-bold mb-4">0 <span class="text-sm text-gray-400">SEK/månad</span></div>
+                    <ul class="space-y-2 mb-6 text-sm text-gray-300">
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            GPT-3.5 & Gemini Flash
+                        </li>
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            50 requests/dag
+                        </li>
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            OCR text-extraktion
+                        </li>
+                    </ul>
+                    <button class="w-full py-2 px-4 bg-gray-600 text-white rounded-lg font-semibold cursor-not-allowed opacity-50 text-sm">
+                        Nuvarande Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <div class="text-center">
+                    <h3 class="text-xl font-bold mb-3">Premium</h3>
+                    <div class="text-3xl font-bold mb-4">99 <span class="text-sm text-gray-400">SEK/månad</span></div>
+                    <ul class="space-y-2 mb-6 text-sm text-gray-300">
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            GPT-4o-mini, Claude Haiku
+                        </li>
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            1000 requests/dag
+                        </li>
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Bildanalys aktiverad
+                        </li>
+                    </ul>
+                    <button onclick="startUpgrade('premium')" class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors text-sm">
+                        Uppgradera till Premium
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pro Plan - Featured -->
+            <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-6 border-2 border-blue-500 relative">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span class="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">POPULÄR</span>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-xl font-bold mb-3">Pro</h3>
+                    <div class="text-3xl font-bold mb-4">299 <span class="text-sm opacity-75">SEK/månad</span></div>
+                    <ul class="space-y-2 mb-6 text-sm">
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            GPT-4o, Claude 3.5 Sonnet
+                        </li>
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            5000 requests/dag
+                        </li>
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Prioritetsbehandling
+                        </li>
+                    </ul>
+                    <button onclick="startUpgrade('pro')" class="w-full py-2 px-4 bg-white text-blue-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm">
+                        Uppgradera till Pro
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <div class="text-center">
+                    <h3 class="text-xl font-bold mb-3">Enterprise</h3>
+                    <div class="text-3xl font-bold mb-4">499 <span class="text-sm text-gray-400">SEK/månad</span></div>
+                    <ul class="space-y-2 mb-6 text-sm text-gray-300">
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Alla premium AI-modeller
+                        </li>
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Obegränsade requests
+                        </li>
+                        <li class="flex items-center text-xs">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            API access & Support
+                        </li>
+                    </ul>
+                    <button onclick="alert('Enterprise plan kommer snart! Kontakta oss för early access.')" class="w-full py-2 px-4 bg-gray-600 text-gray-300 rounded-lg font-semibold cursor-not-allowed text-sm">
+                        Kommer snart
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Comparison -->
+        <div class="bg-gray-800 rounded-2xl p-8 mb-16">
+            <h2 class="text-3xl font-bold text-center mb-8">AI-Modeller per Plan</h2>
+            <div class="grid md:grid-cols-4 gap-6">
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-gray-300">Free</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🤖</span>
+                            <span class="text-sm">GPT-3.5-turbo</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">💎</span>
+                            <span class="text-sm">Gemini Flash</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-green-400">Premium</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🤖</span>
+                            <span class="text-sm">GPT-4o-mini</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🧠</span>
+                            <span class="text-sm">Claude 3 Haiku</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">💎</span>
+                            <span class="text-sm">Gemini Pro</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-blue-400">Pro</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🤖</span>
+                            <span class="text-sm">GPT-4o</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🧠</span>
+                            <span class="text-sm">Claude 3.5 Sonnet</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🦙</span>
+                            <span class="text-sm">Llama 3.1 70B</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-purple-400">Enterprise</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🤖</span>
+                            <span class="text-sm">GPT-4o 32k</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🧠</span>
+                            <span class="text-sm">Claude 3 Opus</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🦙</span>
+                            <span class="text-sm">Llama 3.1 405B</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="text-center">
+            <h2 class="text-2xl font-bold mb-6">Säkra Betalningar med Stripe</h2>
+            <div class="flex justify-center space-x-8 mb-8">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/visa.svg" alt="Visa" class="w-12 h-8 opacity-60">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/mastercard.svg" alt="Mastercard" class="w-12 h-8 opacity-60">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/applepay.svg" alt="Apple Pay" class="w-12 h-8 opacity-60">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/googlepay.svg" alt="Google Pay" class="w-12 h-8 opacity-60">
+            </div>
+            <p class="text-gray-400">Avbryt när som helst • 30 dagars pengarna-tillbaka-garanti</p>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modal-title" class="text-2xl font-bold">Logga in</h2>
+                <button onclick="closeAuthModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="login-email" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Lösenord</label>
+                    <input type="password" id="login-password" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" required>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                    Logga in
+                </button>
+            </form>
+            
+            <!-- Signup Form -->
+            <form id="signup-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Namn</label>
+                    <input type="text" id="signup-name" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="signup-email" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Lösenord</label>
+                    <input type="password" id="signup-password" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" required>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors">
+                    Skapa konto
+                </button>
+            </form>
+            
+            <div class="mt-4 text-center">
+                <button id="toggle-auth" onclick="toggleAuthMode()" class="text-blue-400 hover:text-blue-300 text-sm">
+                    Har du inget konto? Skapa konto
+                </button>
+            </div>
+            
+            <div id="auth-error" class="mt-4 text-red-400 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-2xl p-8 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p class="text-lg">Omdirigerar till betalning...</p>
+        </div>
+    </div>
+
+    <script>
+                 // Configuration - automatically detect environment
+         const API_BASE_URL = 'https://api.finalyze.pro'; // Always use Railway backend
+         const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RJdv4GWc6GycnTBE1bRhhfth1TpjIxDOXfiQCXOU6GKIpdlYsUgqCmtAlKlzCopLVA1SZ1vGlDPgmBvLzpocbui00lmpQy5em';
+        
+        // Initialize Stripe
+        const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+        
+        // Global variables
+        let isLogin = true;
+        let selectedPlan = null;
+        let currentUser = null;
+        
+                 // Plan configurations with actual Stripe price IDs
+         const plans = {
+             premium: {
+                 name: 'Premium',
+                 price: 99,
+                 priceId: 'price_1RlABfGWc6GycnTBym7WZTsP',
+                 features: ['GPT-4o-mini', 'Claude 3 Haiku', 'Gemini Pro', '1000 requests/dag']
+             },
+             pro: {
+                 name: 'Pro',
+                 price: 299,
+                 priceId: 'price_1RlAC5GWc6GycnTBPDsPRabB',
+                 features: ['GPT-4o', 'Claude 3.5 Sonnet', 'Llama 3.1 70B', '5000 requests/dag']
+             },
+             enterprise: {
+                 name: 'Enterprise',
+                 price: 499,
+                 priceId: 'price_coming_soon',
+                 features: ['Alla AI-modeller', 'Obegränsade requests', 'API access', 'Dedicated support']
+             }
+         };
+        
+        // Check if user is logged in on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserStatus();
+        });
+        
+        // Check user authentication status
+        function checkUserStatus() {
+            const token = localStorage.getItem('framesense_token');
+            const userData = localStorage.getItem('framesense_user');
+            
+            if (token && userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    updateUIForLoggedInUser();
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    logout();
+                }
+            }
+        }
+        
+        // Update UI for logged in user
+        function updateUIForLoggedInUser() {
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('logout-btn').classList.remove('hidden');
+            document.getElementById('user-name').textContent = currentUser.name || currentUser.email;
+            
+            // Update current plan display if user has a subscription
+            if (currentUser.tier && currentUser.tier !== 'free') {
+                // You can update the UI to show current plan
+                console.log('User has plan:', currentUser.tier);
+            }
+        }
+        
+        // Start upgrade process
+        function startUpgrade(plan) {
+            selectedPlan = plan;
+            
+            if (currentUser) {
+                // User is logged in, proceed to payment
+                proceedToPayment();
+            } else {
+                // User needs to login/signup first
+                showAuthModal();
+            }
+        }
+        
+        // Show authentication modal
+        function showAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('modal-title').textContent = 'Logga in för att uppgradera';
+        }
+        
+        // Close authentication modal
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            clearAuthForms();
+        }
+        
+        // Toggle between login and signup
+        function toggleAuthMode() {
+            isLogin = !isLogin;
+            
+            if (isLogin) {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('signup-form').classList.add('hidden');
+                document.getElementById('modal-title').textContent = 'Logga in';
+                document.getElementById('toggle-auth').textContent = 'Har du inget konto? Skapa konto';
+            } else {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('signup-form').classList.remove('hidden');
+                document.getElementById('modal-title').textContent = 'Skapa konto';
+                document.getElementById('toggle-auth').textContent = 'Har du redan ett konto? Logga in';
+            }
+            
+            clearAuthForms();
+        }
+        
+        // Clear authentication forms
+        function clearAuthForms() {
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('signup-name').value = '';
+            document.getElementById('signup-email').value = '';
+            document.getElementById('signup-password').value = '';
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+        
+        // Handle login form submission
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Save user data and token
+                    localStorage.setItem('framesense_token', data.token);
+                    localStorage.setItem('framesense_user', JSON.stringify(data.user));
+                    currentUser = data.user;
+                    
+                    // Update UI
+                    updateUIForLoggedInUser();
+                    closeAuthModal();
+                    
+                    // Proceed to payment
+                    proceedToPayment();
+                } else {
+                    showAuthError(data.message || 'Inloggning misslyckades');
+                }
+            } catch (error) {
+                showAuthError('Något gick fel. Försök igen.');
+                console.error('Login error:', error);
+            }
+        });
+        
+        // Handle signup form submission
+        document.getElementById('signup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Save user data and token
+                    localStorage.setItem('framesense_token', data.token);
+                    localStorage.setItem('framesense_user', JSON.stringify(data.user));
+                    currentUser = data.user;
+                    
+                    // Update UI
+                    updateUIForLoggedInUser();
+                    closeAuthModal();
+                    
+                    // Proceed to payment
+                    proceedToPayment();
+                } else {
+                    showAuthError(data.message || 'Kontoskapande misslyckades');
+                }
+            } catch (error) {
+                showAuthError('Något gick fel. Försök igen.');
+                console.error('Signup error:', error);
+            }
+        });
+        
+        // Show authentication error
+        function showAuthError(message) {
+            const errorDiv = document.getElementById('auth-error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+        
+        // Proceed to payment
+        async function proceedToPayment() {
+            if (!selectedPlan || !currentUser) {
+                alert('Fel: Ingen plan vald eller användare inte inloggad');
+                return;
+            }
+            
+            const plan = plans[selectedPlan];
+            if (!plan) {
+                alert('Fel: Okänd plan');
+                return;
+            }
+            
+            // Show loading overlay
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            
+            try {
+                const token = localStorage.getItem('framesense_token');
+                console.log('🔍 Creating checkout session for plan:', selectedPlan);
+                console.log('🔍 API URL:', `${API_BASE_URL}/api/create-checkout-session`);
+                console.log('🔍 Token available:', !!token);
+                
+                const response = await fetch(`${API_BASE_URL}/api/create-checkout-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        priceId: plan.priceId,
+                        planName: selectedPlan,
+                        successUrl: `${window.location.origin}/payments?success=true&plan=${selectedPlan}`,
+                        cancelUrl: `${window.location.origin}/payments?canceled=true`
+                    })
+                });
+                
+                console.log('🔍 Response status:', response.status);
+                console.log('🔍 Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('🔍 Error response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('🔍 Response data:', data);
+                
+                if (data.success && data.sessionId) {
+                    // Redirect to Stripe Checkout
+                    const result = await stripe.redirectToCheckout({
+                        sessionId: data.sessionId
+                    });
+                    
+                    if (result.error) {
+                        throw new Error(result.error.message);
+                    }
+                } else {
+                    throw new Error(data.message || 'Kunde inte skapa checkout session');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Något gick fel vid betalning. Försök igen eller kontakta support.');
+            } finally {
+                // Hide loading overlay
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('framesense_token');
+            localStorage.removeItem('framesense_user');
+            currentUser = null;
+            
+            // Update UI
+            document.getElementById('user-info').classList.add('hidden');
+            document.getElementById('logout-btn').classList.add('hidden');
+            
+            // Reload page to reset state
+            window.location.reload();
+        }
+        
+        // Handle URL parameters (success/cancel)
+        function handleURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            const canceled = urlParams.get('canceled');
+            const plan = urlParams.get('plan');
+            
+            if (success === 'true') {
+                // Payment successful
+                alert(`🎉 Betalning lyckades! Du har nu ${plan} planen. Starta om appen för att se de nya funktionerna.`);
+                
+                // Update user's plan in localStorage if available
+                if (currentUser && plan) {
+                    currentUser.tier = plan;
+                    localStorage.setItem('framesense_user', JSON.stringify(currentUser));
+                }
+                
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (canceled === 'true') {
+                // Payment canceled
+                alert('Betalning avbröts. Du kan försöka igen när som helst.');
+                
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+        
+        // Test backend connection
+        async function testBackendConnection() {
+            try {
+                console.log('🧪 Testing backend connection...');
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                console.log('✅ Backend connection successful:', data);
+                alert('✅ Backend connection successful!');
+            } catch (error) {
+                console.error('❌ Backend connection failed:', error);
+                alert('❌ Backend connection failed: ' + error.message);
+            }
+        }
+        
+        // Handle URL parameters on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            handleURLParams();
+            
+            // Test backend connection on page load
+            testBackendConnection();
+        });
+    </script>
+</body>
+</html> 

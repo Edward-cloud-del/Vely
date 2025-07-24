@@ -1,0 +1,102 @@
+1. /backend/src/routes/ai-enhanced.js
+ROL: Huvud-endpoint för AI-requests från frontend
+ANSVAR: HTTP routing, request validation, response formatting
+ANROPAR: → enhanced-ai-processor.js
+2. /backend/src/routes/ai.ts
+ROL: Legacy/alternativ AI endpoint
+ANSVAR: Äldre AI-logik, fallback routes
+ANROPAR: → Diverse AI services direkt
+🎯 HUVUDORKESTRERING (MASTER CONTROLLER)
+3. /backend/src/services/pipeline/enhanced-ai-processor.js
+ROL: 🚀 HJÄRTAT I SYSTEMET - Huvudorkestrator för alla AI requests
+ANSVAR:
+Request validation
+Question classification
+User profile loading
+Cache management
+Service routing
+Response optimization
+Error handling
+ANROPAR: → Alla andra komponenter
+FLÖDE:
+validateRequest()
+classifyQuestion()
+getUserProfile()
+Cache check
+smartRouter.routeRequest()
+executeService()
+Response optimization
+🧠 INTELLIGENS & ROUTING (DECISION MAKING)
+4. /backend/src/services/classification/question-classifier.js
+ROL: Klassificerar användarfrågor
+ANSVAR: Avgör om fråga är PURE_TEXT, OBJECT_COUNT, CELEBRITY_ID, etc.
+ANVÄNDS AV: Enhanced AI Processor
+5. /backend/src/services/classification/model-selector.js
+ROL: Väljer rätt AI-modell baserat på frågetyp
+ANSVAR: GPT-4, GPT-3.5, Vision-modeller
+ANVÄNDS AV: Smart Router
+6. /backend/src/services/routing/smart-router.js
+ROL: 🎯 INTELLIGENT ROUTING - Avgör vilken service som ska användas
+ANSVAR: Kombinerar question type, user tier, cost optimization
+ANVÄNDER: Question Classifier, Model Selector, Tier Access, Cost Optimizer
+RESULTERAR I: Routing decision (service + model + parameters)
+7. /backend/src/services/routing/tier-access.js
+ROL: Kontrollerar vad olika user tiers får använda
+ANSVAR: free/pro/premium access control
+LOGIK: free→OCR, pro→Objects, premium→Celebrities
+8. /backend/src/services/routing/cost-optimizer.js
+ROL: Optimerar kostnader baserat på budget
+ANSVAR: Väljer billigare alternativ när budget är låg
+9. /backend/src/services/routing/fallback-manager.js
+ROL: Hanterar när primära services failar
+ANSVAR: Fallback chains, graceful degradation
+🔧 VERKSTÄLLANDE SERVICES (ACTUAL AI WORK)
+10. /backend/src/services/enhanced-services/enhanced-ocr.js
+ROL: 📝 HYBRID OCR SYSTEM - Text extraction från bilder
+ANSVAR:
+Tesseract.js (primär, gratis)
+Google Vision fallback
+Quality validation
+Preprocessing
+FLÖDE: tesseractOCR() → quality check → googleVisionFallback() if needed
+11. /backend/src/services/enhanced-services/google-vision.js
+ROL: 👁️ GOOGLE VISION API - Object detection, celebrities, web search
+ANSVAR:
+detectText() - OCR
+detectObjects() - Object detection
+detectCelebritiesAndWeb() - Celebrity ID
+detectLogos() - Logo recognition
+12. /backend/src/services/ai-processor.js
+ROL: 🤖 OPENAI INTEGRATION - GPT models, vision
+ANSVAR: OpenAI API calls, intelligent responses
+ANVÄNDS AV: Enhanced AI Processor för intelligent text analysis
+🧪 PROCESSERING & OPTIMERING (PIPELINE COMPONENTS)
+13. /backend/src/services/pipeline/response-optimizer.js
+ROL: ⚡ RESPONSE OPTIMIZATION - Optimerar svar för caching/transmission
+ANSVAR:
+Format standardization
+Metadata stripping
+Token optimization
+Size reduction
+MAPPAR: OCR_RESULTS, GOOGLE_VISION_OBJECTS, OPENAI_RESPONSES
+14. /backend/src/services/pipeline/analytics-tracker.js
+ROL: 📊 ANALYTICS & METRICS - Spårar usage, costs, performance
+ANSVAR: Request tracking, cost tracking, performance metrics
+💾 CACHING SYSTEM (PERFORMANCE LAYER)
+15. /backend/src/services/caching/cache-manager-simple.js
+ROL: 🚀 CACHE MANAGER - Redis-baserad caching
+ANSVAR:
+generateKey() - Cache key generation
+get() - Cache retrieval med graceful Redis error handling
+set() - Cache storage med compression
+ANVÄNDER: Basic Cache, Cache Key Strategy
+16. /backend/src/services/caching/basic-cache.js
+ROL: 🔌 REDIS CONNECTION - Low-level Redis operations
+ANSVAR: Redis connection management, reconnection logic, health checks
+17. /backend/src/services/caching/cache-key-strategy.js
+ROL: 🔑 CACHE STRATEGY - Intelligent cache key generation
+ANSVAR: Olika strategier för olika service types, TTL management
+👤 USER MANAGEMENT
+18. /backend/src/services/user-service.ts
+ROL: 👥 USER PROFILES - User data, tiers, subscriptions
+ANSVAR: getUserById(), tier verification, usage tracking

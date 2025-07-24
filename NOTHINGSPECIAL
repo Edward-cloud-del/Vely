@@ -1,0 +1,323 @@
+{
+    "meta": {
+      "instanceId": "framesense-ai-workflow"
+    },
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "framesense-ai",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "webhook-start",
+        "name": "🚀 FrameSense AI Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [240, 300]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Extract and validate request data\nconst body = $input.all()[0].json.body;\nconst { imageData, question, userId, userTier = 'free' } = body;\n\n// Classify question type\nlet questionType = 'PURE_TEXT';\nif (question.includes('hur många') || question.includes('how many') || question.includes('count')) {\n  questionType = 'OBJECT_COUNT';\n} else if (question.includes('vem är') || question.includes('who is') || question.includes('celebrity')) {\n  questionType = 'CELEBRITY_ID';\n} else if (question.includes('vad står det') || question.includes('read') || question.includes('text')) {\n  questionType = 'PURE_TEXT';\n}\n\n// Determine service based on question type and user tier\nlet service = 'ocr';\nif (questionType === 'OBJECT_COUNT' && ['pro', 'premium'].includes(userTier)) {\n  service = 'google-vision-objects';\n} else if (questionType === 'CELEBRITY_ID' && userTier === 'premium') {\n  service = 'google-vision-web';\n} else if (questionType === 'PURE_TEXT') {\n  service = 'ocr';\n}\n\nreturn {\n  imageData,\n  question,\n  userId,\n  userTier,\n  questionType,\n  service,\n  hasImage: !!imageData && imageData.length > 50\n};"
+        },
+        "id": "classify-request",
+        "name": "🧠 Classify Request",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [460, 300]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "ocr-path",
+                "leftValue": "={{ $json.service }}",
+                "rightValue": "ocr",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "google-objects",
+                "leftValue": "={{ $json.service }}",
+                "rightValue": "google-vision-objects",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "google-web",
+                "leftValue": "={{ $json.service }}",
+                "rightValue": "google-vision-web",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "route-service",
+        "name": "🎯 Route to Service",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [680, 300]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Handle text-only requests (no image)\nif (!$json.hasImage) {\n  return {\n    result: {\n      text: `Hej! Jag behöver en bild för att kunna svara på \"${$json.question}\". Ladda upp en bild så analyserar jag den åt dig!`,\n      confidence: 1.0,\n      service: 'text-only-handler'\n    },\n    success: true,\n    cached: false,\n    metadata: {\n      questionType: $json.questionType,\n      service: 'text-only-handler',\n      userTier: $json.userTier,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// OCR Processing (Free tier)\n// In real implementation, call Tesseract.js or Google Vision API here\nconst mockText = \"Sample extracted text from image\";\n\nreturn {\n  result: {\n    text: mockText,\n    confidence: 0.85,\n    service: 'enhanced-ocr',\n    wordCount: mockText.split(' ').length\n  },\n  success: true,\n  cached: false,\n  metadata: {\n    questionType: $json.questionType,\n    service: 'enhanced-ocr',\n    userTier: $json.userTier,\n    cost: 0.01,\n    timestamp: new Date().toISOString()\n  }\n};"
+        },
+        "id": "ocr-service",
+        "name": "📝 OCR Service",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [900, 200]
+    }, 
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "serviceAccountEmail": "{{ $vars.GOOGLE_SERVICE_ACCOUNT_EMAIL }}",
+        "privateKey": "{{ $vars.GOOGLE_PRIVATE_KEY }}",
+        "resource": "images",
+        "operation": "annotate",
+        "features": [
+          {
+            "type": "OBJECT_LOCALIZATION",
+            "maxResults": 20
+          },
+          {
+            "type": "LABEL_DETECTION", 
+            "maxResults": 15
+          }
+        ],
+        "additionalFields": {
+          "imageContent": "={{ $json.imageData }}"
+        }
+      },
+      "id": "google-objects",
+      "name": "🎯 Google Vision Objects",
+      "type": "n8n-nodes-base.googleCloudVision",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount", 
+        "serviceAccountEmail": "{{ $vars.GOOGLE_SERVICE_ACCOUNT_EMAIL }}",
+        "privateKey": "{{ $vars.GOOGLE_PRIVATE_KEY }}",
+        "resource": "images",
+        "operation": "annotate",
+        "features": [
+          {
+            "type": "WEB_DETECTION",
+            "maxResults": 10
+          },
+          {
+            "type": "FACE_DETECTION",
+            "maxResults": 5
+          }
+        ],
+        "additionalFields": {
+          "imageContent": "={{ $json.imageData }}"
+        }
+      },
+      "id": "google-web",
+      "name": "⭐ Google Vision Celebrity",
+      "type": "n8n-nodes-base.googleCloudVision",
+      "typeVersion": 1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format OCR response\nconst input = $input.all()[0].json;\n\nif (input.result) {\n  // Already formatted from OCR service\n  return input;\n}\n\n// Format Google Vision response\nlet response = {\n  result: {\n    summary: \"No results found\",\n    confidence: 0.5,\n    service: input.service || 'unknown'\n  },\n  success: true,\n  cached: false,\n  metadata: {\n    questionType: input.questionType || 'unknown',\n    service: input.service || 'unknown', \n    userTier: input.userTier || 'free',\n    cost: 0.03,\n    timestamp: new Date().toISOString()\n  }\n};\n\n// Process Google Vision Objects\nif (input.service === 'google-vision-objects' && input.responses) {\n  const objects = input.responses[0]?.localizedObjectAnnotations || [];\n  const labels = input.responses[0]?.labelAnnotations || [];\n  \n  if (objects.length > 0) {\n    const objectList = objects.map(obj => `${obj.name} (${Math.round(obj.score * 100)}%)`).join(', ');\n    response.result.summary = `I can see these objects: ${objectList}`;\n    response.result.confidence = Math.max(...objects.map(o => o.score));\n    response.result.objectCount = objects.length;\n    response.result.objects = objects;\n  } else if (labels.length > 0) {\n    const labelList = labels.slice(0, 5).map(label => label.description).join(', ');\n    response.result.summary = `This image appears to contain: ${labelList}`;\n    response.result.confidence = labels[0].score;\n  }\n}\n\n// Process Google Vision Web/Celebrity\nif (input.service === 'google-vision-web' && input.responses) {\n  const webDetection = input.responses[0]?.webDetection;\n  const faces = input.responses[0]?.faceAnnotations;\n  \n  if (webDetection?.webEntities?.length > 0) {\n    const entities = webDetection.webEntities.filter(e => e.description && e.score > 0.5);\n    if (entities.length > 0) {\n      response.result.summary = `This might be: ${entities[0].description}`;\n      response.result.confidence = entities[0].score;\n      response.result.entities = entities;\n    }\n  }\n  \n  if (faces?.length > 0) {\n    response.result.summary += ` (${faces.length} face(s) detected)`;\n    response.result.faceCount = faces.length;\n  }\n}\n\nreturn response;"
+      },
+      "id": "format-response",
+      "name": "📋 Format Response", 
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin", 
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "webhook-response",
+      "name": "📤 Send Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error handler - format error response\nconst error = $input.all()[0].json.error || $input.all()[0].json;\n\nreturn {\n  success: false,\n  error: error.message || 'AI processing failed',\n  code: 'AI_PROCESSING_ERROR',\n  metadata: {\n    timestamp: new Date().toISOString(),\n    service: 'n8n-workflow',\n    userTier: $json.userTier || 'unknown'\n  }\n};"
+      },
+      "id": "error-handler",
+      "name": "❌ Error Handler",
+      "type": "n8n-nodes-base.code", 
+      "typeVersion": 2,
+      "position": [1120, 500]
+    }
+  ],
+  "connections": {
+    "🚀 FrameSense AI Webhook": {
+      "main": [
+        [
+          {
+            "node": "🧠 Classify Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 Classify Request": {
+      "main": [
+        [
+          {
+            "node": "🎯 Route to Service", 
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Route to Service": {
+      "main": [
+        [
+          {
+            "node": "📝 OCR Service",
+            "type": "main", 
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🎯 Google Vision Objects",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⭐ Google Vision Celebrity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 OCR Service": {
+      "main": [
+        [
+          {
+            "node": "📋 Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Google Vision Objects": {
+      "main": [
+        [
+          {
+            "node": "📋 Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "❌ Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⭐ Google Vision Celebrity": {
+      "main": [
+        [
+          {
+            "node": "📋 Format Response", 
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "❌ Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 Format Response": {
+      "main": [
+        [
+          {
+            "node": "📤 Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "❌ Error Handler": {
+      "main": [
+        [
+          {
+            "node": "📤 Send Response",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "updatedAt": "2024-01-15T10:00:00.000Z", 
+      "id": "framesense-ai",
+      "name": "FrameSense AI"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>FrameSense Download Test</h1>
+    
+    <button id="test-mac">Test Mac Download</button>
+    <button id="test-windows">Test Windows Download</button>
+    <button id="test-linux">Test Linux Download</button>
+    
+    <div class="debug" id="debug-output">Debug info will appear here...</div>
+
+    <script>
+        async function testDownload(platform) {
+            const debugEl = document.getElementById('debug-output');
+            debugEl.innerHTML = `Testing ${platform} download...<br>`;
+            
+            try {
+                const response = await fetch('https://api.github.com/repos/Edward-cloud-del/framesense/releases/latest');
+                debugEl.innerHTML += `✅ API Response: ${response.status}<br>`;
+                
+                const release = await response.json();
+                debugEl.innerHTML += `✅ Release: ${release.tag_name}<br>`;
+                debugEl.innerHTML += `📦 Assets: ${release.assets.length}<br>`;
+                
+                release.assets.forEach(asset => {
+                    debugEl.innerHTML += `- ${asset.name}<br>`;
+                });
+                
+                let downloadUrl = null;
+                
+                if (platform === 'mac') {
+                    const macAsset = release.assets.find(asset => 
+                        asset.name.includes('.dmg') && (
+                            asset.name.includes('x64') || 
+                            asset.name.includes('x86_64') ||
+                            asset.name.includes('aarch64')
+                        )
+                    );
+                    downloadUrl = macAsset?.browser_download_url;
+                } else if (platform === 'windows') {
+                    const winAsset = release.assets.find(asset => 
+                        asset.name.includes('.msi') || 
+                        asset.name.includes('-setup.exe')
+                    );
+                    downloadUrl = winAsset?.browser_download_url;
+                } else if (platform === 'linux') {
+                    const linuxAsset = release.assets.find(asset => 
+                        asset.name.includes('.AppImage')
+                    );
+                    downloadUrl = linuxAsset?.browser_download_url;
+                }
+                
+                debugEl.innerHTML += `🔍 Found URL: ${downloadUrl}<br>`;
+                
+                if (downloadUrl) {
+                    debugEl.innerHTML += `🚀 Opening: ${downloadUrl}<br>`;
+                    window.open(downloadUrl, '_blank');
+                } else {
+                    debugEl.innerHTML += `❌ No matching file found for ${platform}<br>`;
+                }
+                
+            } catch (error) {
+                debugEl.innerHTML += `❌ Error: ${error.message}<br>`;
+            }
+        }
+        
+        document.getElementById('test-mac').addEventListener('click', () => testDownload('mac'));
+        document.getElementById('test-windows').addEventListener('click', () => testDownload('windows'));
+        document.getElementById('test-linux').addEventListener('click', () => testDownload('linux'));
+        
+        console.log('Test page loaded!');
+    </script>
+</body>
+</html> 

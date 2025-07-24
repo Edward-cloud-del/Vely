@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betalning Lyckades - FrameSense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 min-h-screen flex items-center justify-center">
+    <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 max-w-md w-full mx-4 text-center">
+        <!-- Success Icon -->
+        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+
+        <!-- Title -->
+        <h1 class="text-2xl font-bold text-white mb-4">Betalning Lyckades! 🎉</h1>
+        
+        <!-- Description -->
+        <p class="text-white/80 mb-6">
+            Tack för ditt köp! Din prenumeration är nu aktiv och du har tillgång till alla premium funktioner.
+        </p>
+
+        <!-- Plan Info -->
+        <div class="bg-white/5 rounded-lg p-4 mb-6 border border-white/10">
+            <h3 class="text-white font-semibold mb-2">Din Plan</h3>
+            <div id="plan-info" class="text-white/80">
+                <span id="plan-name">Premium</span> - <span id="plan-price">99 SEK/månad</span>
+            </div>
+            <div class="text-sm text-white/60 mt-2">
+                ✅ Tillgång till alla AI-modeller<br>
+                ✅ Obegränsade förfrågningar<br>
+                ✅ Prioriterad support
+            </div>
+        </div>
+
+        <!-- Return to App -->
+        <div class="space-y-3">
+            <button 
+                id="return-to-app" 
+                class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>Återgå till FrameSense App</span>
+            </button>
+            
+            <!-- Alternative: Manual Check -->
+            <p class="text-xs text-white/60">
+                Appen öppnas inte automatiskt?
+                <br><strong>1.</strong> Öppna FrameSense appen
+                <br><strong>2.</strong> Klicka på "Models" knappen  
+                <br><strong>3.</strong> Tryck "Already paid? Check status"
+                <br>Din premium access aktiveras direkt! 🎉
+            </p>
+        </div>
+
+        <!-- Download App (if not installed) -->
+        <div class="mt-6 pt-6 border-t border-white/10">
+            <p class="text-sm text-white/60 mb-3">Har du inte appen installerad än?</p>
+            <a 
+                href="/downloads" 
+                class="inline-flex items-center space-x-2 text-blue-300 hover:text-blue-200 text-sm underline"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                <span>Ladda ner FrameSense</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const plan = urlParams.get('plan') || 'premium';
+        const sessionId = urlParams.get('session_id');
+        const token = urlParams.get('token');
+        const email = urlParams.get('email');
+        
+        console.log('🎉 Payment success page loaded:', { plan, email, hasToken: !!token });
+        console.log('🔍 Full URL params:', window.location.search);
+        console.log('🔍 Token value:', token);
+        console.log('🔍 Email value:', email);
+        
+        // Payment completed successfully
+        if (token && email) {
+            console.log('✅ Payment completed successfully for:', email, 'plan:', plan);
+        } else {
+            console.warn('⚠️ Missing token or email in success URL');
+        }
+        
+        // Update plan info based on URL parameter
+        const planInfo = {
+            premium: { name: 'Premium', price: '99 SEK/månad' },
+            pro: { name: 'Pro', price: '299 SEK/månad' },
+            enterprise: { name: 'Enterprise', price: '499 SEK/månad' }
+        };
+        
+        const selectedPlan = planInfo[plan] || planInfo.premium;
+        document.getElementById('plan-name').textContent = selectedPlan.name;
+        document.getElementById('plan-price').textContent = selectedPlan.price;
+        
+        // Handle return to app button
+        document.getElementById('return-to-app').addEventListener('click', function() {
+            if (token) {
+                // Try to open app with token-based deep link
+                const deepLinkUrl = `framesense://success?token=${token}&email=${encodeURIComponent(email)}&plan=${plan}`;
+                window.location.href = deepLinkUrl;
+                
+                setTimeout(() => {
+                    alert(`✅ Credentials saved!\n\nOm appen inte öppnas:\n1. Öppna FrameSense manuellt\n2. Tryck "Already paid? Check status"\n3. Din ${selectedPlan.name} access aktiveras direkt!`);
+                }, 1000);
+            } else {
+                alert('❌ Authentication token missing. Please try payment again or contact support.');
+            }
+        });
+        
+
+    </script>
+</body>
+</html> 

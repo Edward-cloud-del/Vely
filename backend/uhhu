@@ -1,0 +1,32 @@
+1. Fel identifiering av användare i webhooken
+Vad händer?
+Webhooken får ett Stripe-event (t.ex. checkout.session.completed), men när den försöker hitta användaren i din databas använder den fel identifierare (t.ex. userId, email, eller customerId).
+Konsekvens:
+Om ingen användare hittas → ingen uppdatering sker.
+Lösning:
+Se till att du alltid sparar och använder rätt identifierare (helst stripe_customer_id) när du letar upp användaren i webhooken.
+2. customerId saknas eller är fel i din databas
+Vad händer?
+När du skapar en Stripe-kund, sparar du inte customerId på användaren i din databas.
+Konsekvens:
+Webhooken kan inte hitta rätt användare när Stripe skickar ett event med customerId.
+Lösning:
+Efter att du skapat Stripe-kund, spara customerId på användaren:
+Apply to subscription...
+;
+3. Webhooken körs innan användaren är skapad
+Vad händer?
+Stripe kan ibland skicka webhooken innan användaren är skapad i din databas (race condition).
+Konsekvens:
+Webhooken hittar ingen användare att uppdatera.
+Lösning:
+Se till att användaren alltid skapas/loggas in innan betalning startar.
+Alternativt: implementera en retry-mekanism i webhooken.
+4. Fel i SQL/ORM-uppdateringen
+Vad händer?
+Koden för att uppdatera användarens tier körs, men SQL/ORM hittar ingen rad att uppdatera (t.ex. fel email eller customerId).
+Konsekvens:
+Användaren får aldrig rätt tier i databasen, även om webhooken körs.
+Lösning:
+Lägg till loggar och kontrollera att update-queryn faktiskt hittar och uppdaterar användaren.
+Exempel:

@@ -1,0 +1,136 @@
+{
+  "analytics": {
+    "requests": {
+      "total": 3,
+      "byService": {
+        "openai-vision": 2,
+        "enhanced-ocr": 1
+      },
+      "byUser": {
+        "07b9e49f-840b-46b9-aff9-c3a768744ff8": {
+          "count": 2,
+          "tier": "premium",
+          "totalCost": 0.0012,
+          "services": {}
+        },
+        "719033db-dcd9-4ed0-96d1-b368055fa3bf": {
+          "count": 1,
+          "tier": "premium",
+          "totalCost": 0.0006,
+          "services": {}
+        }
+      },
+      "byTier": {
+        "premium": 3
+      },
+      "byHour": {
+        "17": 2,
+        "19": 1
+      },
+      "byDay": {
+        "2025-07-17": 3
+      },
+      "successful": 3,
+      "failed": 0
+    },
+    "performance": {
+      "totalResponseTime": 1193,
+      "averageResponseTime": 397.6666666666667,
+      "byService": {
+        "openai-vision": {
+          "totalTime": 861,
+          "requestCount": 2,
+          "averageTime": 430.5
+        },
+        "enhanced-ocr": {
+          "totalTime": 332,
+          "requestCount": 1,
+          "averageTime": 332
+        }
+      },
+      "slowestRequests": [],
+      "fastestRequests": []
+    },
+    "costs": {
+      "total": 0.0018,
+      "saved": 0,
+      "byService": {
+        "openai-vision": 0.0012,
+        "enhanced-ocr": 0.0006
+      },
+      "byUser": {
+        "07b9e49f-840b-46b9-aff9-c3a768744ff8": 0.0012,
+        "719033db-dcd9-4ed0-96d1-b368055fa3bf": 0.0006
+      },
+      "byTier": {},
+      "dailySpend": {
+        "2025-07-17": 0.0018
+      },
+      "monthlySpend": {}
+    },
+    "cache": {
+      "totalRequests": 3,
+      "hits": 0,
+      "misses": 3,
+      "hitRate": 0,
+      "byService": {},
+      "savings": {
+        "time": 0,
+        "cost": 0
+      }
+    },
+    "quality": {
+      "averageConfidence": 0,
+      "byService": {
+        "openai-vision": {
+          "totalConfidence": 1.8,
+          "requestCount": 2,
+          "averageConfidence": 0.9
+        },
+        "enhanced-ocr": {
+          "totalConfidence": 0.9,
+          "requestCount": 1,
+          "averageConfidence": 0.9
+        }
+      },
+      "userSatisfaction": {},
+      "errorTypes": {}
+    },
+    "usage": {
+      "peakHours": {
+        "17": 2,
+        "19": 1
+      },
+      "popularServices": {
+        "openai-vision": 2,
+        "enhanced-ocr": 1
+      },
+      "userPatterns": {
+        "07b9e49f-840b-46b9-aff9-c3a768744ff8": {
+          "favoriteServices": {
+            "openai-vision": 2
+          },
+          "activeHours": {
+            "17": 2
+          },
+          "questionTypes": {
+            "DESCRIBE_SCENE": 2
+          }
+        },
+        "719033db-dcd9-4ed0-96d1-b368055fa3bf": {
+          "favoriteServices": {
+            "enhanced-ocr": 1
+          },
+          "activeHours": {
+            "19": 1
+          },
+          "questionTypes": {
+            "PURE_TEXT": 1
+          }
+        }
+      },
+      "tierUtilization": {}
+    }
+  },
+  "backedUpAt": "2025-07-22T18:01:10.178Z"
+}

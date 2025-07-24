@@ -1,0 +1,270 @@
+🔧 PIECE 1: AUTHENTICATION BRIDGE
+Problem:
+Användaren är inloggad på hemsidan men inte i Tauri-appen efter betalning.
+Lösning:
+Automatisk token-transfer från hemsida till app
+Steg 1.1: Förbättra Success Page Token Handling
+Fil: website/success.html
+
+// Förbättra token-sparning för Tauri pickup
+if (token && email) {
+    const paymentCredentials = {
+        token: token,
+        email: email, 
+        plan: plan,
+        timestamp: Date.now(),
+        session_id: sessionId,
+        auto_login: true  // ← NY FLAG
+    };
+    
+    // Spara via backend API (redan implementerat)
+    await fetch('http://localhost:3001/api/save-payment-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentCredentials)
+    });
+}
+
+Steg 1.2: Förbättra Tauri Payment File Reader
+// Förbättra check_payment_file() för auto-login
+#[tauri::command]
+async fn check_payment_file_and_login(
+    auth_service: tauri::State<'_, SharedAuthService>
+) -> Result<Option<User>, String> {
+    // Läs payment credentials
+    if let Some(credentials) = check_payment_file().await? {
+        if let (Some(token), Some(email)) = (
+            credentials.get("token").and_then(|v| v.as_str()),
+            credentials.get("email").and_then(|v| v.as_str())
+        ) {
+            // Automatisk login med token
+            let service = {
+                let guard = auth_service.lock().unwrap();
+                guard.clone()
+            };
+            
+            match service.verify_token(token.to_string()).await {
+                Ok(user) => {
+                    // Spara session lokalt
+                    service.save_user_session(&user).await?;
+                    println!("🎉 Auto-login successful: {} ({})", user.email, user.tier);
+                    return Ok(Some(user));
+                },
+                Err(e) => println!("⚠️ Auto-login failed: {}", e)
+            }
+        }
+    }
+    Ok(None)
+}
+Steg 1.3: Uppdatera Frontend Auth Service
+// Lägg till auto-login check vid app start
+async initialize() {
+    // Först kolla befintlig session
+    await this.loadCurrentUser();
+    
+    // Om ingen session, kolla payment file för auto-login
+    if (!this.currentUser) {
+        await this.checkPaymentFileAutoLogin();
+    }
+    
+    // Sedan initiera deep link listener
+    if (!this.deepLinkInitialized) {
+        await this.initializeDeepLinkListener();
+        this.deepLinkInitialized = true;
+    }
+}
+
+private async checkPaymentFileAutoLogin(): Promise<void> {
+    try {
+        const user = await invoke<User | null>('check_payment_file_and_login');
+        if (user) {
+            this.currentUser = user;
+            this.notifyAuthListeners(user);
+            console.log('🎉 Auto-login from payment file successful');
+        }
+    } catch (error) {
+        console.log('ℹ️ No payment file auto-login available');
+    }
+}
+🔄 PIECE 2: SMART POLLING TRIGGER
+Intelligent polling som triggas av payment detection
+Steg 2.1: Payment Detection Watcher
+// Lägg till payment detection watcher
+private paymentPollingInterval: NodeJS.Timeout | null = null;
+
+async startPaymentPolling(): Promise<void> {
+    if (this.paymentPollingInterval) {
+        clearInterval(this.paymentPollingInterval);
+    }
+    
+    console.log('🔄 Starting payment status polling...');
+    let attempts = 0;
+    const maxAttempts = 40; // 2 minuter (40 * 3s)
+    
+    this.paymentPollingInterval = setInterval(async () => {
+        attempts++;
+        
+        try {
+            // Kolla payment file först (snabbt)
+            const paymentUser = await invoke<User | null>('check_payment_file_and_login');
+            if (paymentUser && paymentUser.tier !== 'free') {
+                this.handlePaymentSuccess(paymentUser);
+                return;
+            }
+            
+            // Kolla server status (backup)
+            const serverUser = await this.checkUserStatus();
+            if (serverUser && serverUser.tier !== 'free') {
+                this.handlePaymentSuccess(serverUser);
+                return;
+            }
+            
+            // Timeout check
+            if (attempts >= maxAttempts) {
+                this.stopPaymentPolling();
+                console.log('⏱️ Payment polling timeout - manual check required');
+                this.showPaymentTimeoutMessage();
+            }
+            
+        } catch (error) {
+            console.error('❌ Payment polling error:', error);
+        }
+    }, 3000); // Polla var 3:e sekund
+}
+
+private handlePaymentSuccess(user: User): void {
+    this.stopPaymentPolling();
+    this.currentUser = user;
+    this.notifyAuthListeners(user);
+    
+    // Visa success meddelande
+    this.showPaymentSuccessNotification(user.tier);
+    
+    // Emit event för UI uppdatering
+    window.dispatchEvent(new CustomEvent('payment_verified', { 
+        detail: { user } 
+    }));
+}
+
+private stopPaymentPolling(): void {
+    if (this.paymentPollingInterval) {
+        clearInterval(this.paymentPollingInterval);
+        this.paymentPollingInterval = null;
+        console.log('⏹️ Payment polling stopped');
+    }
+}
+Steg 2.2: Trigger Polling från UI
+// Lägg till payment polling trigger
+const handleUpgradeClick = async () => {
+    // Öppna payment sida
+    window.open('http://localhost:3000/payments', '_blank');
+    
+    // Starta payment detection
+    await authService.startPaymentPolling();
+    
+    // Visa polling UI
+    setIsWaitingForPayment(true);
+};
+
+// Lyssna på payment verification
+useEffect(() => {
+    const handlePaymentVerified = (event: CustomEvent) => {
+        setIsWaitingForPayment(false);
+        const { user } = event.detail;
+        alert(`🎉 Payment Verified!\n\nYou now have ${user.tier} access!`);
+    };
+    
+    window.addEventListener('payment_verified', handlePaymentVerified);
+    return () => window.removeEventListener('payment_verified', handlePaymentVerified);
+}, []);
+💬 PIECE 3: USER FEEDBACK
+Tydlig progress feedback under payment verification
+// Ny komponent för payment waiting
+interface PaymentWaitingProps {
+    isVisible: boolean;
+    onManualCheck: () => void;
+    onCancel: () => void;
+}
+
+export const PaymentWaiting: React.FC<PaymentWaitingProps> = ({
+    isVisible,
+    onManualCheck,
+    onCancel
+}) => {
+    const [dots, setDots] = useState('');
+    
+    useEffect(() => {
+        if (!isVisible) return;
+        
+        const interval = setInterval(() => {
+            setDots(prev => prev.length >= 3 ? '' : prev + '.');
+        }, 500);
+        
+        return () => clearInterval(interval);
+    }, [isVisible]);
+    
+    if (!isVisible) return null;
+    
+    return (
+        <div className="payment-waiting-overlay">
+            <div className="payment-waiting-content">
+                <div className="spinner" />
+                <h3>Verifying Payment{dots}</h3>
+                <p>Please wait while we confirm your subscription...</p>
+                
+                <div className="payment-waiting-actions">
+                    <button onClick={onManualCheck}>
+                        Check Manually
+                    </button>
+                    <button onClick={onCancel}>
+                        Cancel
+                    </button>
+                </div>
+                
+                <div className="payment-waiting-help">
+                    <p>Taking too long?</p>
+                    <ul>
+                        <li>✅ Complete payment in browser</li>
+                        <li>🔄 Click "Check Manually"</li>
+                        <li>📧 Check email for confirmation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+Steg 3.2: Integrera i Main App
+// Lägg till payment waiting state
+const [isWaitingForPayment, setIsWaitingForPayment] = useState(false);
+
+// Hantera manual check
+const handleManualPaymentCheck = async () => {
+    try {
+        const user = await authService.checkUserStatus();
+        if (user && user.tier !== 'free') {
+            setIsWaitingForPayment(false);
+            alert(`🎉 Payment Found!\n\nYou now have ${user.tier} access!`);
+        } else {
+            alert('⏳ Payment not found yet. Please wait or try again.');
+        }
+    } catch (error) {
+        alert('❌ Error checking payment status. Please try again.');
+    }
+};
+
+// Render payment waiting overlay
+return (
+    <div className="app">
+        {/* Existing app content */}
+        
+        <PaymentWaiting
+            isVisible={isWaitingForPayment}
+            onManualCheck={handleManualPaymentCheck}
+            onCancel={() => {
+                authService.stopPaymentPolling();
+                setIsWaitingForPayment(false);
+            }}
+        />
+    </div>
+);

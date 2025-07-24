@@ -1,0 +1,18 @@
+{
+  "identifier": "migrated",
+  "description": "FrameSense core permissions",
+  "local": true,
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "core:window:allow-start-dragging",
+    "core:webview:default",
+    "core:app:default",
+    "core:event:default",
+    "shell:default",
+    "notification:default"
+  ]
+}

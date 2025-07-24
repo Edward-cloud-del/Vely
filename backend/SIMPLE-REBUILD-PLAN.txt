@@ -1,0 +1,115 @@
+FRAMESENSE BACKEND - SIMPLE REBUILD PLAN
+=========================================
+
+🎯 MÅL: En minimal backend som tar en bild → gör OCR → skickar till ChatGPT-4 → returnerar svar
+
+📋 EXAKT VAD VI BEHÅLLER:
+- package.json (redan rensat)
+- database/ mapp (ignoreras för nu)
+- .env för API-nycklar
+
+📋 EXAKT VAD VI SKAPAR:
+
+STEG 1: SKAPA MILJÖVARIABLER
+---------------------------
+Fil: backend/.env
+Innehåll:
+- OPENAI_API_KEY=din_nyckel_här
+- PORT=8080
+
+STEG 2: SKAPA MINIMAL SERVER
+----------------------------
+Fil: backend/src/server.ts
+Funktionalitet:
+- Express server
+- CORS för frontend
+- Multer för bilduppladdning
+- EN ENDA endpoint: POST /api/analyze
+
+STEG 3: SKAPA OCR SERVICE
+-------------------------
+Fil: backend/src/services/ocr.ts
+Funktionalitet:
+- Tar en bild (Buffer)
+- Använder tesseract.js
+- Returnerar text
+
+STEG 4: SKAPA CHATGPT SERVICE
+-----------------------------
+Fil: backend/src/services/chatgpt.ts
+Funktionalitet:
+- Tar text från OCR
+- Skickar till OpenAI GPT-4
+- Returnerar svar
+
+STEG 5: MAIN ROUTE
+------------------
+Fil: backend/src/routes/analyze.ts
+Flöde:
+1. Ta emot bild
+2. Kör OCR på bilden
+3. Skicka OCR-text till ChatGPT
+4. Returnera ChatGPT-svar
+
+STEG 6: TYPESCRIPT CONFIG
+-------------------------
+Använd befintlig tsconfig.json (funkar redan)
+
+STEG 7: TEST LOKALT
+-------------------
+1. npm install
+2. npm run dev
+3. Testa med Postman/curl
+
+STEG 8: DEPLOY
+--------------
+1. git add .
+2. git commit
+3. Railway auto-deploy
+
+🔥 SUPERKRITISKA REGLER:
+========================
+- INGEN autentisering (för nu)
+- INGEN databas (för nu) 
+- INGEN caching
+- INGEN komplex felhantering
+- BARA EN ENDPOINT
+- INGA dependencies utöver de 6 i package.json
+- INGA klasser, bara funktioner
+- ALLT i TypeScript
+- INGEN middleware utom CORS och multer
+
+📁 FINAL STRUKTUR:
+==================
+backend/
+├── src/
+│   ├── server.ts          (main server)
+│   ├── routes/
+│   │   └── analyze.ts     (main route)
+│   └── services/
+│       ├── ocr.ts         (tesseract)
+│       └── chatgpt.ts     (openai)
+├── .env                   (api keys)
+└── package.json           (already done)
+
+🚨 EXAKT API ENDPOINT:
+======================
+POST /api/analyze
+Headers: Content-Type: multipart/form-data
+Body: image (file)
+Response: { success: true, text: "OCR text", answer: "ChatGPT svar" }
+
+💡 IMPLEMENTATION ORDNING:
+==========================
+1. .env fil
+2. server.ts (bara skelett)
+3. ocr.ts service
+4. chatgpt.ts service  
+5. analyze.ts route
+6. Koppla ihop allt i server.ts
+7. Test
+
+🎯 TOTAL KODMÄNGD: <200 rader
+🎯 TOTAL FILER: 5 stycken
+🎯 TOTAL DEPENDENCIES: 6 stycken
+🎯 BYGG TID: <30 minuter 

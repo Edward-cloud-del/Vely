@@ -1,0 +1,70 @@
+🔍 PROBLEMANALYS: Varför AI-svar inte genereras för bild + text
+📋 NUVARANDE WORKFLOW (Fungerar men har gaps)
+Apply to AI-TEXT-GENE...
+1. "vad står det på bilden" → Question Classifier
+2. Question Classifier → PURE_TEXT (fallback, confidence 0.3)  
+3. PURE_TEXT → enhanced-ocr service
+4. Enhanced OCR → Tesseract försöker läsa bild
+5. Tesseract → Google Vision fallback (om Tesseract failar)
+6. OCR Result → "text": "", "hasText": false
+7. Two-step check → OCR hittade ingen text → HOPPAR ÖVER AI-analys
+8. Return → Tom respons utan AI-svar
+🚨 IDENTIFIERADE PROBLEM (med nuvarande workflow)
+PROBLEM 1: Svenska Pattern Matching
+Issue: "vad står det på bilden" får score 0.000 för ALLA question types
+Root Cause: PURE_TEXT patterns är bara engelska (/what does/i, /read text/i)
+Missing: Svenska patterns (/vad står det/i, /vad säger/i, /läs texten/i)
+Impact: Hamnar i fallback istället för correct classification
+PROBLEM 2: Test Image är för minimal
+Issue: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
+Root Cause: Detta är en 1x1 pixel transparent PNG - ingen faktisk text
+Impact: Tesseract OCR kan inte läsa något → Google Vision kan inte läsa något
+Result: "text": "", "hasText": false, "wordCount": 0
+PROBLEM 3: Two-Step Logic Condition
+Issue: Two-step AI-analys körs bara när ocrResult.text && ocrResult.text.length > 0
+Root Cause: När OCR hittar ingen text = ingen AI-analys
+Logic Gap: Men för "vad står det på bilden" borde AI kunna svara "Jag ser ingen text i bilden"
+Missing: AI-analys även när OCR är tomt för text-related questions
+PROBLEM 4: Cache Poisoning
+Issue: Samma tomma resultat cachas och återanvänds
+Root Cause: Cache key baserat på bild-hash ger samma resultat
+Impact: Samma fel returneras från cache utan ny analys
+PROBLEM 5: Service Routing Gap
+Issue: PURE_TEXT går alltid till enhanced-ocr först
+Missing: Ingen direktroute till Google Vision Text för svenska frågor
+Gap: Google Vision har bättre språkstöd än Tesseract för svenska
+🎯 NUVARANDE WORKFLOW FUNGERAR MEN BEHÖVER FIXES:
+FIX 1: Lägg till Svenska Patterns (minimal ändring)
+Apply to AI-TEXT-GENE...
+// I PURE_TEXT patterns, lägg till:
+/vad står det/i,
+/vad säger.*text/i, 
+/läs.*text/i,
+/vad.*skrivet/i
+FIX 2: Utöka Two-Step Logic (minimal ändring)
+Apply to AI-TEXT-GENE...
+// Ändra från:
+if (questionType.id === 'PURE_TEXT' && ocrResult.text && ocrResult.text.length > 0)
+
+// Till:
+if (questionType.id === 'PURE_TEXT') // Kör AI även om OCR är tomt
+FIX 3: Bättre Test Image (testning)
+Apply to AI-TEXT-GENE...
+// Använd riktig bild med text istället för 1x1 pixel
+FIX 4: Google Vision som Primary för Svenska (routing)
+Apply to AI-TEXT-GENE...
+// För svenska frågor, använd google-vision-text direkt istället för tesseract fallback
+✅ VAD SOM REDAN FUNGERAR BRA:
+Question Classification System - struktur är bra, bara patterns saknas
+Two-Step Architecture - logiken finns, bara condition för snäv
+Service Integration - Google Vision fungerar, bara routing-prioritet
+Cache System - fungerar perfekt (kanske för bra!)
+Error Handling - graceful degradation fungerar
+Premium User Access - tier-based access fungerar
+🎯 SLUTSATS: Workflow är bra, behöver bara 4 småfixes
+Problemet är INTE arkitekturen utan:
+Missing svenska patterns → lägg till i question-classifier
+För strikt two-step condition → kör AI även när OCR tomt
+Test image för minimal → använd riktig text-bild
+Service priority → Google Vision först för svenska
+Workflow:et i sig är exakt rätt, bara dessa small gaps som blockerar AI-responsen.
