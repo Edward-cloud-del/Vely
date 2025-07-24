@@ -1,0 +1,28 @@
+npm install -g pnpm
+
+# Install Rust (follow prompts)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+# Verify installations
+node --version     # Should be 18+
+pnpm --version     # Should be 10.10.0+
+cargo --version    # Should show Rust version
+
+cd framesense-4fbe15588d6e1afcb725ca627e82a54cc303c88b
+
+# Install frontend dependencies
+pnpm install
+
+# Install backend dependencies  
+cd backend
+npm install
+cd ..
+
+# Build Rust components
+cargo build
+
+cd backend
+npm run dev
+
+pnpm dev
