@@ -50,3 +50,4 @@ app URL protocol. This can be used for say Music Players, PDF Readers, etc.
 
 - [URL schema](https://gitlab.com/ioneyed/tauri-example-singleinstance)
 # Vely
+# vely2
